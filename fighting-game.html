@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stick Fighter</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(to bottom, #1a1a2e, #16213e);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            min-height: 100vh;
+        }
+        
+        h1 {
+            text-shadow: 0 0 10px #00eeff, 0 0 20px #008cff;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .game-container {
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        #gameCanvas {
+            background: linear-gradient(to bottom, #87CEEB, #1E90FF);
+            border: 4px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            width: 800px;
+            margin: 20px 0;
+        }
+        
+        .player-controls {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            width: 350px;
+        }
+        
+        .player-controls h3 {
+            margin-top: 0;
+            color: #4dff4d;
+        }
+        
+        .player-controls p {
+            margin: 5px 0;
+            font-size: 1.1rem;
+        }
+        
+        .key {
+            display: inline-block;
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            margin: 0 3px;
+            border-radius: 5px;
+            font-weight: bold;
+            border: 1px solid #666;
+        }
+        
+        .health-container {
+            display: flex;
+            justify-content: space-between;
+            width: 800px;
+            margin-bottom: 10px;
+        }
+        
+        .health-bar {
+            height: 30px;
+            width: 350px;
+            background: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 2px solid #555;
+        }
+        
+        .health-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        #player1Health {
+            background: linear-gradient(to right, #ff3300, #ff9900);
+        }
+        
+        #player2Health {
+            background: linear-gradient(to right, #00ccff, #0066ff);
+        }
+        
+        .player-label {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        #player1Label {
+            color: #ff9900;
+        }
+        
+        #player2Label {
+            color: #00ccff;
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            width: 800px;
+            margin-top: 20px;
+        }
+        
+        .instructions p {
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        .winner-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 30px 50px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: none;
+            z-index: 10;
+            border: 3px solid gold;
+            box-shadow: 0 0 30px gold;
+        }
+        
+        .restart-btn {
+            background: #ff9900;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .restart-btn:hover {
+            background: #ffcc00;
+            transform: scale(1.05);
+        }
+        
+        .character-name {
+            position: absolute;
+            bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        
+        #player1Name {
+            left: 100px;
+            color: #ff9900;
+        }
+        
+        #player2Name {
+            right: 100px;
+            color: #00ccff;
+        }
+    </style>
+</head>
+<body>
+    <h1>STICK FIGHTER</h1>
+    
+    <div class="health-container">
+        <div>
+            <div class="player-label" id="player1Label">PLAYER 1</div>
+            <div class="health-bar">
+                <div class="health-fill" id="player1Health" style="width: 100%;"></div>
+            </div>
+        </div>
+        <div>
+            <div class="player-label" id="player2Label">PLAYER 2</div>
+            <div class="health-bar">
+                <div class="health-fill" id="player2Health" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        <div class="character-name" id="player1Name">FIGHTER 1</div>
+        <div class="character-name" id="player2Name">FIGHTER 2</div>
+        <div class="winner-message" id="winnerMessage">
+            <div id="winnerText"></div>
+            <button class="restart-btn" onclick="resetGame()">PLAY AGAIN</button>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <div class="player-controls">
+            <h3>PLAYER 1 CONTROLS</h3>
+            <p>Move: <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span></p>
+            <p>Attack: <span class="key">F</span></p>
+        </div>
+        <div class="player-controls">
+            <h3>PLAYER 2 CONTROLS</h3>
+            <p>Move: <span class="key">O</span> <span class="key">K</span> <span class="key">L</span> <span class="key">;</span></p>
+            <p>Attack: <span class="key">J</span></p>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <p>First player to deplete the opponent's health bar wins!</p>
+        <p>Land punches by getting close to your opponent and pressing your attack key.</p>
+    </div>
+
+    <script>
+        // Game elements
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const player1Health = document.getElementById('player1Health');
+        const player2Health = document.getElementById('player2Health');
+        const winnerMessage = document.getElementById('winnerMessage');
+        const winnerText = document.getElementById('winnerText');
+        
+        // Game state
+        let gameRunning = true;
+        let keys = {};
+        
+        // Player class
+        class Player {
+            constructor(x, y, width, height, color, controls) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.color = color;
+                this.controls = controls;
+                this.speed = 5;
+                this.health = 100;
+                this.isAttacking = false;
+                this.attackCooldown = 0;
+                this.facingRight = true;
+                this.punchAnimation = 0;
+                this.isHit = false;
+                this.hitCooldown = 0;
+            }
+            
+            draw() {
+                // Save context
+                ctx.save();
+                
+                // Apply hit effect
+                if (this.isHit && this.hitCooldown > 0) {
+                    ctx.globalAlpha = 0.5;
+                }
+                
+                // Draw body
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // Draw head
+                ctx.beginPath();
+                ctx.arc(this.x + this.width/2, this.y - 15, 15, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw arms
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 5;
+                ctx.lineCap = 'round';
+                
+                // Determine arm positions based on punch animation
+                let armOffset = 0;
+                if (this.punchAnimation > 0) {
+                    armOffset = this.punchAnimation > 10 ? -20 : -10;
+                }
+                
+                // Left arm
+                ctx.beginPath();
+                ctx.moveTo(this.x + 5, this.y + 10);
+                ctx.lineTo(this.x - 15 + armOffset, this.y + 10);
+                ctx.stroke();
+                
+                // Right arm
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width - 5, this.y + 10);
+                ctx.lineTo(this.x + this.width + 15 + armOffset, this.y + 10);
+                ctx.stroke();
+                
+                // Draw legs
+                ctx.beginPath();
+                ctx.moveTo(this.x + 5, this.y + this.height);
+                ctx.lineTo(this.x - 5, this.y + this.height + 30);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width - 5, this.y + this.height);
+                ctx.lineTo(this.x + this.width + 5, this.y + this.height + 30);
+                ctx.stroke();
+                
+                // Restore context
+                ctx.restore();
+            }
+            
+            update() {
+                // Handle movement
+                if (keys[this.controls.left] && this.x > 0) {
+                    this.x -= this.speed;
+                    this.facingRight = false;
+                }
+                if (keys[this.controls.right] && this.x < canvas.width - this.width) {
+                    this.x += this.speed;
+                    this.facingRight = true;
+                }
+                if (keys[this.controls.up] && this.y > canvas.height - 150) {
+                    this.y -= this.speed;
+                }
+                if (keys[this.controls.down] && this.y < canvas.height - this.height) {
+                    this.y += this.speed;
+                }
+                
+                // Handle attack
+                if (keys[this.controls.attack] && this.attackCooldown <= 0) {
+                    this.isAttacking = true;
+                    this.attackCooldown = 30;
+                    this.punchAnimation = 20;
+                }
+                
+                // Update attack state
+                if (this.attackCooldown > 0) {
+                    this.attackCooldown--;
+                } else {
+                    this.isAttacking = false;
+                }
+                
+                // Update punch animation
+                if (this.punchAnimation > 0) {
+                    this.punchAnimation--;
+                }
+                
+                // Update hit effect
+                if (this.hitCooldown > 0) {
+                    this.hitCooldown--;
+                } else {
+                    this.isHit = false;
+                }
+            }
+            
+            takeDamage() {
+                this.health -= 10;
+                this.isHit = true;
+                this.hitCooldown = 20;
+                
+                // Update health bar
+                if (this === player1) {
+                    player1Health.style.width = this.health + '%';
+                } else {
+                    player2Health.style.width = this.health + '%';
+                }
+                
+                // Check for game over
+                if (this.health <= 0) {
+                    this.health = 0;
+                    gameRunning = false;
+                    showWinner(this === player1 ? 2 : 1);
+                }
+            }
+        }
+        
+        // Create players
+        const player1 = new Player(100, canvas.height - 100, 30, 60, '#ff9900', {
+            up: 'w',
+            down: 's',
+            left: 'a',
+            right: 'd',
+            attack: 'f'
+        });
+        
+        const player2 = new Player(600, canvas.height - 100, 30, 60, '#00ccff', {
+            up: 'o',
+            down: 'l',
+            left: 'k',
+            right: ';',
+            attack: 'j'
+        });
+        
+        // Check for collisions
+        function checkCollisions() {
+            // Attack range
+            const attackRange = 50;
+            
+            // Player 1 attacking Player 2
+            if (player1.isAttacking) {
+                const distance = Math.abs((player1.x + player1.width/2) - (player2.x + player2.width/2));
+                if (distance < attackRange && 
+                    Math.abs(player1.y - player2.y) < 50) {
+                    player2.takeDamage();
+                    player1.isAttacking = false;
+                }
+            }
+            
+            // Player 2 attacking Player 1
+            if (player2.isAttacking) {
+                const distance = Math.abs((player2.x + player2.width/2) - (player1.x + player1.width/2));
+                if (distance < attackRange && 
+                    Math.abs(player2.y - player1.y) < 50) {
+                    player1.takeDamage();
+                    player2.isAttacking = false;
+                }
+            }
+        }
+        
+        // Show winner message
+        function showWinner(playerNumber) {
+            winnerText.textContent = `PLAYER ${playerNumber} WINS!`;
+            winnerMessage.style.display = 'block';
+        }
+        
+        // Reset game
+        function resetGame() {
+            player1.health = 100;
+            player2.health = 100;
+            player1.x = 100;
+            player2.x = 600;
+            player1Health.style.width = '100%';
+            player2Health.style.width = '100%';
+            gameRunning = true;
+            winnerMessage.style.display = 'none';
+        }
+        
+        // Draw background
+        function drawBackground() {
+            // Sky gradient
+            const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            skyGradient.addColorStop(0, '#87CEEB');
+            skyGradient.addColorStop(1, '#1E90FF');
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Ground
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+            
+            // Ground details
+            ctx.fillStyle = '#2E8B57';
+            for (let i = 0; i < canvas.width; i += 30) {
+                ctx.fillRect(i, canvas.height - 30, 15, 5);
+            }
+        }
+        
+        // Game loop
+        function gameLoop() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background
+            drawBackground();
+            
+            if (gameRunning) {
+                // Update players
+                player1.update();
+                player2.update();
+                
+                // Check for collisions
+                checkCollisions();
+            }
+            
+            // Draw players
+            player1.draw();
+            player2.draw();
+            
+            // Continue game loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Event listeners for keyboard input
+        window.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+        
+        // Start the game
+        gameLoop();
+    </script>
+</body>
+</html>
